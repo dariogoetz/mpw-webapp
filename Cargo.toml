@@ -7,3 +7,4 @@ edition = "2021"
 
 [dependencies]
 leptos = "0.2.5"
+mpw = { git = "https://github.com/dariogoetz/mpw.git" }
