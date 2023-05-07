@@ -6,7 +6,6 @@ fn main() {
     leptos::mount_to_body(|cx| view! { cx, <App/> })
 }
 
-
 #[derive(Clone, Debug)]
 struct UserData {
     name: String,
@@ -35,7 +34,7 @@ fn App(cx: Scope) -> impl IntoView {
     }
 }
 
-fn mpw_generator(name: String, password: String) -> UserData {
+fn mk_generator(name: String, password: String) -> UserData {
     let masterkey = MasterKey::new_auth(&name, &password);
 
     let userdata = UserData {
@@ -49,32 +48,35 @@ fn mpw_generator(name: String, password: String) -> UserData {
 #[component]
 fn Login(cx: Scope) -> impl IntoView {
     // TODO: get users (with last used info) from local storage
-    let users = vec!["Dario Götz", "dario", "allyn", "mattis"];
+    let names = move || vec!["Dario Götz", "dario", "allyn", "mattis"];
 
     view! { cx,
         <div class="row">
+
         // Existing users
-        {users
-        .into_iter()
-        .map(|user| {
-            view! { cx,
-                <div class="col-12 p-3">
-                    <LoginExistingUser name=user.to_string() mpw_generator=mpw_generator/>
-                </div>}
-        })
-        .collect::<Vec<_>>()}
+        <For
+            each=names
+            key=|name| name.to_string()
+            view=move |cx, name| {
+                view! { cx,
+                    <div class="col-12 p-3">
+                        <LoginExistingUser name=name.to_string() mk_generator=mk_generator/>
+                    </div>
+                }
+            }
+        />
         </div>
 
         <div class="row">
         // New User
         <div class="col-12">
-            <LoginNewUser mpw_generator=mpw_generator/>
+            <LoginNewUser mk_generator=mk_generator/>
         </div></div>
     }
 }
 
 #[component]
-fn LoginExistingUser<F>(cx: Scope, name: String, mpw_generator: F) -> impl IntoView
+fn LoginExistingUser<F>(cx: Scope, name: String, mk_generator: F) -> impl IntoView
 where
     F: Fn(String, String) -> UserData + 'static,
 {
@@ -106,7 +108,7 @@ where
                             // stop the page from reloading!
                             ev.prevent_default();
 
-                            let userdata = mpw_generator(name.clone(), password());
+                            let userdata = mk_generator(name.clone(), password());
                             set_userdata(Some(userdata));
                         }
                     >"Submit"</button>
@@ -117,7 +119,7 @@ where
 }
 
 #[component]
-fn LoginNewUser<F>(cx: Scope, mpw_generator: F) -> impl IntoView
+fn LoginNewUser<F>(cx: Scope, mk_generator: F) -> impl IntoView
 where
     F: Fn(String, String) -> UserData + 'static,
 {
@@ -162,7 +164,7 @@ where
                             // stop the page from reloading!
                             ev.prevent_default();
 
-                            let userdata = mpw_generator(name(), password());
+                            let userdata = mk_generator(name(), password());
                             set_userdata(Some(userdata));
                         }
                     >"Submit"</button>
