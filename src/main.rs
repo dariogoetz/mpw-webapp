@@ -17,7 +17,8 @@ fn App(cx: Scope) -> impl IntoView {
     // provide a masterpassword signal to place into context (global state)
     let (userdata, set_userdata) = create_signal::<Option<UserData>>(cx, None);
 
-    provide_context(cx, set_userdata);
+    provide_context(cx, GetUserData(userdata));
+    provide_context(cx, SetUserData(set_userdata));
 
     view! { cx,
         <div class="container overflow-hidden">
@@ -44,6 +45,12 @@ fn mk_generator(name: String, password: String) -> UserData {
 
     userdata
 }
+
+#[derive(Copy, Clone)]
+struct GetUserData(ReadSignal<Option<UserData>>);
+
+#[derive(Copy, Clone)]
+struct SetUserData(WriteSignal<Option<UserData>>);
 
 #[component]
 fn Login(cx: Scope) -> impl IntoView {
@@ -82,9 +89,19 @@ where
 {
     let (password, set_password) = create_signal(cx, "".to_string());
 
-    // set masterpassword in global context
-    let set_userdata =
-        use_context::<WriteSignal<Option<UserData>>>(cx).expect("No setter for user data provided");
+    let userdata = use_context::<GetUserData>(cx)
+        .expect("No getter for user data provided")
+        .0;
+    let set_userdata = use_context::<SetUserData>(cx)
+        .expect("No setter for user data provided")
+        .0;
+
+    // null password upon login
+    create_effect(cx, move |_| {
+        if userdata().is_some() {
+            set_password("".to_string());
+        }
+    });
 
     view! { cx,
         <div class="card">
@@ -126,9 +143,19 @@ where
     let (name, set_name) = create_signal(cx, "".to_string());
     let (password, set_password) = create_signal(cx, "".to_string());
 
-    // set masterpassword in global context
-    let set_userdata = use_context::<WriteSignal<Option<UserData>>>(cx)
-        .expect("No setter for masterpassword provided");
+    let userdata = use_context::<GetUserData>(cx)
+        .expect("No getter for user data provided")
+        .0;
+    let set_userdata = use_context::<SetUserData>(cx)
+        .expect("No setter for masterpassword provided")
+        .0;
+
+    // null password upon login
+    create_effect(cx, move |_| {
+        if userdata().is_some() {
+            set_password("".to_string());
+        }
+    });
 
     view! { cx,
         <div class="card">
@@ -145,7 +172,7 @@ where
                             }
                         prop:value=name
                         />
-                        <div id="emailHelp" class="form-text">"Full name"</div>
+                        <div class="form-text">"Full name"</div>
                     </div>
 
                     // Password input field
