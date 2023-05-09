@@ -8,3 +8,7 @@ edition = "2021"
 [dependencies]
 leptos = "0.2.5"
 mpw = { git = "https://github.com/dariogoetz/mpw.git" }
+web-sys = { version = "0.3", features=["Storage"]}
+serde = { version = "1.0", features = ["derive"] }
+serde_json = "1.0"
+magic-crypt = "3.1.12"
