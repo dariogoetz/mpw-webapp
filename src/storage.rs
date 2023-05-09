@@ -3,18 +3,9 @@ use std::collections::HashMap;
 use magic_crypt::{new_magic_crypt, MagicCryptTrait};
 use serde::{Deserialize, Serialize};
 
-#[derive(Deserialize, Serialize, Clone, Debug)]
-pub struct Site {
-    pub site_name: String,
-    pub counter: i32,
-    pub password_type: String,
-}
+use crate::sites::Site;
 
-#[derive(Deserialize, Serialize, Clone, Debug)]
-struct UserSites {
-    name: String,
-    sites: Vec<Site>,
-}
+const STORAGE_KEY: &str = "db";
 
 #[derive(Clone, Debug)]
 pub struct EncryptedStorage {
@@ -23,6 +14,8 @@ pub struct EncryptedStorage {
 
 #[derive(Deserialize, Serialize, Clone, Debug)]
 pub struct EncryptedSites(String);
+
+// TODO: proper error types (thiserror?)
 
 impl EncryptedSites {
     pub fn decrypt(&self, password: &str) -> Result<Vec<Site>, String> {
@@ -40,8 +33,6 @@ impl EncryptedSites {
         EncryptedSites(mc.encrypt_str_to_base64(&json_string))
     }
 }
-
-const STORAGE_KEY: &str = "db";
 
 impl EncryptedStorage {
     pub fn from_local_storage() -> Self {
@@ -62,25 +53,23 @@ impl EncryptedStorage {
         Self { db }
     }
 
-    pub fn names(&self) -> Vec<String> {
-        self.db.iter().map(|(name, _)| name.to_string()).collect()
-    }
-
-    pub fn get_user_sites(&self, name: &str, password: &str) -> Result<Vec<Site>, String> {
-        let encrypted_sites = self.db.get(name);
-        if encrypted_sites.is_none() {
-            return Ok(Vec::new());
-        };
-        let encrypted_sites = encrypted_sites.unwrap();
-
-        encrypted_sites.decrypt(password)
-    }
-
     pub fn to_local_storage(&self) -> () {
         let local_storage = web_sys::window().unwrap().local_storage().unwrap().unwrap();
 
         let json_data = serde_json::to_string(&self.db).unwrap();
         local_storage.set_item(STORAGE_KEY, &json_data).unwrap();
+    }
+
+    pub fn names(&self) -> Vec<String> {
+        self.db.iter().map(|(name, _)| name.to_string()).collect()
+    }
+
+    pub fn decrypt_sites(&self, name: &str, password: &str) -> Result<Vec<Site>, String> {
+        if let Some(encrypted_sites) = self.db.get(name) {
+            encrypted_sites.decrypt(password)
+        } else {
+            return Ok(Vec::new());
+        }
     }
 
     pub fn add_site(
@@ -110,6 +99,8 @@ impl EncryptedStorage {
             None => Vec::new(),
         };
 
+        // TODO: in case site with that site_name exists -> update
+
         user_sites.push(new_site);
 
         self.db.insert(
@@ -117,4 +108,6 @@ impl EncryptedStorage {
             EncryptedSites::from_sites(&user_sites, storage_password),
         );
     }
+
+    // TODO: delete_site
 }

@@ -15,16 +15,10 @@ fn main() {
 }
 
 #[derive(Copy, Clone)]
-struct GetUserData(ReadSignal<EncryptedStorage>);
+struct RwUserData(RwSignal<EncryptedStorage>);
 
 #[derive(Copy, Clone)]
-struct SetUserData(WriteSignal<EncryptedStorage>);
-
-#[derive(Copy, Clone)]
-struct GetLoginData(ReadSignal<Option<LoginData>>);
-
-#[derive(Copy, Clone)]
-struct SetLoginData(WriteSignal<Option<LoginData>>);
+struct RwLoginData(RwSignal<Option<LoginData>>);
 
 #[derive(Clone, Debug)]
 pub struct LoginData {
@@ -36,14 +30,12 @@ pub struct LoginData {
 #[component]
 fn App(cx: Scope) -> impl IntoView {
     // prepare global state for login data
-    let (login_data, set_login_data) = create_signal::<Option<LoginData>>(cx, None);
-    provide_context(cx, GetLoginData(login_data));
-    provide_context(cx, SetLoginData(set_login_data));
+    let login_data = create_rw_signal::<Option<LoginData>>(cx, None);
+    provide_context(cx, RwLoginData(login_data));
 
     // prepare global state for browser-local storage
-    let (user_data, set_user_data) = create_signal(cx, EncryptedStorage::from_local_storage());
-    provide_context(cx, GetUserData(user_data));
-    provide_context(cx, SetUserData(set_user_data));
+    let user_data = create_rw_signal(cx, EncryptedStorage::from_local_storage());
+    provide_context(cx, RwUserData(user_data));
     let existing_name = move || user_data().names().first().map(|name| name.to_string());
 
     // write database to storage whenever it changes
@@ -58,7 +50,7 @@ fn App(cx: Scope) -> impl IntoView {
                 // if no masterpassword is set, yet, show login component
                 fallback=move |cx| view! { cx, <Login existing_name=existing_name/>}
             >
-                <GeneratePasswords />
+                <Sites />
             </Show>
         </div>
     }
