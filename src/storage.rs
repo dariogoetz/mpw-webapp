@@ -97,12 +97,18 @@ impl EncryptedStorage {
             password_type: pw_type.to_string(),
         };
 
-        let mut user_sites = self
-            .db
-            .get(login_name)
-            .map(|encrypted_sites| encrypted_sites.decrypt(storage_password).ok())
-            .flatten()
-            .unwrap_or(Vec::new());
+        let encrypted_sites = self.db.get(login_name);
+        let mut user_sites = match encrypted_sites {
+            Some(enc_sites) => {
+                let user_sites = enc_sites.decrypt(storage_password);
+                if user_sites.is_err() {
+                    // do not do anything
+                    return;
+                }
+                user_sites.unwrap()
+            }
+            None => Vec::new(),
+        };
 
         user_sites.push(new_site);
 
