@@ -3,8 +3,6 @@ name: Deploy github page
 on:
   push:
     branches: [main]
-  pull_request:
-    branches: [main]
 
 env:
   CARGO_TERM_COLOR: always
@@ -25,8 +23,9 @@ jobs:
 
       - run: trunk build --release
 
-      - uses: peaceiris/actions-gh-pages@v3
-        if: github.ref == 'refs/heads/main'
+      - name: Deploy to github pages
+        uses: JamesIves/github-pages-deploy-action@4
+        if: github.event_name != 'pull_request'
         with:
-          github_token: $
-          publish_dir: ./dist
+          branch: gh-pages # The branch the action should deploy to.
+          folder: ./dist # The folder the action should deploy.
