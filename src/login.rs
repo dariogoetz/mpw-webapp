@@ -45,14 +45,16 @@ pub fn Login(cx: Scope) -> impl IntoView {
     });
 
     view! { cx,
-        <div class="card">
-            <div class="card-header text-bg-primary"> <span class="fs-1">"Login"</span> </div>
+        <div class="mt-5 text-center">
+            <h1 class="display-4 text-light">"Masterpassword App"</h1>
+        </div>
 
-            <div class="card-body">
+        <div class="card col-8 mt-5 text-center mx-auto">
+            <div class="card-body bg-light">
                 <form>
                     // Name input field
-                    <div class="row">
-                        <div class="input-group mb-3">
+                    <div class="row my-3 px-3">
+                        <div class="input-group">
                             <span class="input-group-text">
                                 <i class="fa-solid fa-user"/>
                             </span>
@@ -66,8 +68,8 @@ pub fn Login(cx: Scope) -> impl IntoView {
                     </div>
 
                     // Password input field
-                    <div class="row">
-                        <div class="input-group mb-3">
+                    <div class="row mb-3 px-3">
+                        <div class="input-group">
                             <span class="input-group-text">
                                 <i class="fa-solid fa-key"/>
                             </span>
@@ -94,8 +96,8 @@ pub fn Login(cx: Scope) -> impl IntoView {
 
 
                     // Submit button
-                    <div class="row">
-                        <button type="submit" class="btn btn-primary"
+                    <div class="row mb-3 px-3">
+                        <button type="submit" class="btn btn-secondary text-bg-override"
                             on:click=move |ev| {
                                 // stop the page from reloading!
                                 ev.prevent_default();

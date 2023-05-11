@@ -25,8 +25,8 @@ pub fn Sites(cx: Scope) -> impl IntoView {
     };
 
     view! { cx,
-        <div class="mb-3 mt-4 p-5 bg-primary text-white rounded">
-            <h1 class="display-4">{login_data().unwrap().name}"'s Password Store"</h1>
+        <div class="my-5 text-center">
+            <h1 class="display-4 text-light">{login_data().unwrap().name}"'s Password Store"</h1>
         </div>
 
         <SitePassword site=Signal::derive(cx, move || None)/>
@@ -137,11 +137,11 @@ fn SitePassword(cx: Scope, site: Signal<Option<Site>>) -> impl IntoView {
 
     view! { cx,
         <form>
-            <div class="card mb-3">
-                <div class=move || if site().is_none() {"card-header text-bg-secondary"} else {"card-header"}>
+            <div class="card mb-3 border-dark">
+                <div class=move || if site().is_none() {"card-header text-bg-secondary text-bg-override"} else {"card-header"}>
                     <div class="row">
-                        <span class="col-9 fs-4">{title()}</span>
-                        <div class="col-3">
+                        <span class="col-8 fs-4">{title()}</span>
+                        <div class="col-4">
                             // Collapse edit fields button
                             <button class="btn btn-light btn-outline-secondary float-end" type="button" data-bs-toggle="collapse" data-bs-target=format!("#{}Collapse", site_name())>
                                 <i class="fa-solid fa-ellipsis" />
@@ -150,7 +150,7 @@ fn SitePassword(cx: Scope, site: Signal<Option<Site>>) -> impl IntoView {
                             {if site().is_none() {
                                 view! { cx,
                                     // save site password
-                                    <button class="btn btn-light btn-outline-primary float-end" on:click=save_on_click type="submit">
+                                    <button class="btn btn-light btn-outline-secondary float-end" on:click=save_on_click type="submit">
                                         <i class="fa-solid fa-download" />
                                     </button>
                                 }
@@ -188,7 +188,7 @@ fn SitePassword(cx: Scope, site: Signal<Option<Site>>) -> impl IntoView {
                     // Password input field
                     <div class="input-group mb-3">
                         <input
-                            class="form-control text-bg-secondary text-center"
+                            class="form-control text-bg-secondary text-bg-override text-center"
                             // show password if toggled
                             type=move || if hide_pw() { "password" } else { "text" }
                             prop:value=password
@@ -214,7 +214,9 @@ fn SitePassword(cx: Scope, site: Signal<Option<Site>>) -> impl IntoView {
                                 class="form-select"
                                 on:change=move |ev| {
                                     pw_type.set(event_target_value(&ev));
-                                    save_site();
+                                    if site().is_some() {
+                                        save_site();
+                                    }
                                 }
                                 prop:value=pw_type
                             >
@@ -238,7 +240,9 @@ fn SitePassword(cx: Scope, site: Signal<Option<Site>>) -> impl IntoView {
                                 type="number" min="1"
                                 on:change=move |ev| {
                                     counter.set(event_target_value(&ev).parse::<i32>().unwrap_or(1));
-                                    save_site();
+                                    if site().is_some() {
+                                        save_site();
+                                    }
                                 }
                                 prop:value=counter
                             />
