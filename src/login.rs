@@ -49,7 +49,7 @@ pub fn Login(cx: Scope) -> impl IntoView {
             <h1 class="display-4 text-light">"Masterpassword App"</h1>
         </div>
 
-        <div class="card col-8 mt-5 text-center mx-auto">
+        <div class="card col-lg-6 col-md-8 col-12 mt-5 text-center mx-auto">
             <div class="card-body bg-light">
                 <form>
                     // Name input field
