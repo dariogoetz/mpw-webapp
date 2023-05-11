@@ -1,4 +1,3 @@
-# in .github/workflows/continuous_deployment.yml
 name: Deploy github page
 
 on:
