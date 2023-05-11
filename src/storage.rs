@@ -1,4 +1,3 @@
-use leptos::*;
 use std::collections::HashMap;
 
 use magic_crypt::{new_magic_crypt, MagicCryptTrait};
