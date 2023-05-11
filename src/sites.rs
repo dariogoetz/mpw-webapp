@@ -1,7 +1,7 @@
 use leptos::*;
 use serde::{Deserialize, Serialize};
 
-use crate::{RwLoginData, RwUserData};
+use crate::{RwLoginData, RwStorage};
 
 #[derive(Deserialize, Serialize, Clone, Debug)]
 pub struct Site {
@@ -16,10 +16,10 @@ pub fn Sites(cx: Scope) -> impl IntoView {
     let login_name = move || login_data().unwrap().name;
     let storage_password = move || login_data().unwrap().storage_password;
 
-    let user_data = use_context::<RwUserData>(cx).unwrap().0;
+    let store = use_context::<RwStorage>(cx).unwrap().0;
 
     let sites = move || {
-        user_data()
+        store()
             .decrypt_sites(&login_name(), &storage_password())
             .unwrap_or(Vec::new())
     };
@@ -29,14 +29,14 @@ pub fn Sites(cx: Scope) -> impl IntoView {
             <h1 class="display-4">{login_data().unwrap().name}"'s Password Store"</h1>
         </div>
 
-        <SitePassword site=None/>
+        <SitePassword site=Signal::derive(cx, move || None)/>
 
         <For
             each=sites
             key=|site| site.site_name.to_string()
             view=move |cx, site| {
                     view! {cx,
-                        <SitePassword site=Some(site) />
+                        <SitePassword site=Signal::derive(cx, move || Some(site.clone())) />
                     }
                 }
         />
@@ -44,20 +44,17 @@ pub fn Sites(cx: Scope) -> impl IntoView {
 }
 
 #[component]
-fn SitePassword(cx: Scope, site: Option<Site>) -> impl IntoView {
-    let site = move || site.clone();
-
+fn SitePassword(cx: Scope, site: Signal<Option<Site>>) -> impl IntoView {
     // from global context
-    let login_data = use_context::<RwLoginData>(cx)
-        .expect("No getter for login data provided")
-        .0;
+    let login_data = use_context::<RwLoginData>(cx).unwrap().0;
     let login_name = move || login_data().unwrap().name;
     let masterkey = move || login_data().unwrap().masterkey;
     let storage_password = move || login_data().unwrap().storage_password;
 
-    let user_data = use_context::<RwUserData>(cx).unwrap().0;
+    let store = use_context::<RwStorage>(cx).unwrap().0;
 
     // signals
+    let site_name = create_rw_signal(cx, site().map(|s| s.site_name).unwrap_or("".to_string()));
     let counter = create_rw_signal(cx, site().map(|s| s.counter).unwrap_or(1));
     let pw_type = create_rw_signal(
         cx,
@@ -65,32 +62,20 @@ fn SitePassword(cx: Scope, site: Option<Site>) -> impl IntoView {
             .map(|s| s.password_type)
             .unwrap_or("Maximum".to_string()),
     );
-    let site_name = create_rw_signal(cx, site().map(|s| s.site_name).unwrap_or("".to_string()));
     let hide_pw = create_rw_signal(cx, site().is_some());
 
     // derived signals
+
     let title = || {
         site()
             .map(|_| site_name())
             .unwrap_or("New Site".to_string())
     };
-    let password = move || {
-        if site_name().len() > 0 {
-            // TODO: save, once site update is supported by storage
-            //save(&site_name(), counter(), &pw_type());
-            masterkey().generate_password(&site_name(), &pw_type().as_str().into(), counter())
-        } else {
-            "".to_string()
-        }
-    };
-
     let is_selected = move |selection| (pw_type() == selection).then(|| "selected");
 
-    let save_site = move |ev: ev::MouseEvent| {
-        ev.prevent_default();
-
+    let add_site = move || {
         if site_name().len() > 0 {
-            user_data.update(|data| {
+            store.update(|data| {
                 data.add_site(
                     &login_name(),
                     &storage_password(),
@@ -99,13 +84,51 @@ fn SitePassword(cx: Scope, site: Option<Site>) -> impl IntoView {
                     &pw_type(),
                 )
             });
-            site_name.set("".to_string());
         }
     };
 
+    let update_site = move || {
+        store.update(|data| {
+            data.update_site(
+                &login_name(),
+                &storage_password(),
+                &site_name(),
+                counter(),
+                &pw_type(),
+            )
+        });
+    };
+
     let delete_site = move |_ev| {
-        // TODO
-        log!("Deleting site {}", site_name());
+        store.update(|data| data.delete_site(&login_name(), &storage_password(), &site_name()));
+    };
+
+    let save_site = move || {
+        if site().is_none() {
+            add_site();
+        } else {
+            update_site();
+        }
+    };
+
+    let password = move || {
+        if site_name().len() > 0 {
+            // save_site(&site_name(), counter(), &pw_type()); // generates infinite loop...?
+            store();
+            masterkey().generate_password(&site_name(), &pw_type().as_str().into(), counter())
+        } else {
+            "".to_string()
+        }
+    };
+
+    let save_on_click = move |ev: ev::MouseEvent| {
+        ev.prevent_default();
+
+        save_site();
+
+        site_name.set("".to_string());
+        counter.set(1);
+        pw_type.set("Maximum".to_string());
     };
 
     view! { cx,
@@ -116,21 +139,21 @@ fn SitePassword(cx: Scope, site: Option<Site>) -> impl IntoView {
                         <h1 class="col-9">{title()}</h1>
                         <div class="col-3">
                             // Collapse edit fields button
-                            <button class="btn btn-outline-light float-end" type="button" data-bs-toggle="collapse" data-bs-target=format!("#{}Collapse", site_name())>
+                            <button class="btn btn-light btn-outline-secondary float-end" type="button" data-bs-toggle="collapse" data-bs-target=format!("#{}Collapse", site_name())>
                                 <i class="fa-solid fa-ellipsis" />
                             </button>
 
                             {if site().is_none() {
                                 view! { cx,
                                     // save site password
-                                    <button class="btn btn-outline-light float-end" on:click=save_site type="submit">
+                                    <button class="btn btn-light btn-outline-primary float-end" on:click=save_on_click type="submit">
                                         <i class="fa-solid fa-download" />
                                     </button>
                                 }
                             } else {
                                 view! {cx,
                                     // Delete password button
-                                    <button class="btn btn-outline-danger float-end" on:click=delete_site type="button">
+                                    <button class="btn btn-light btn-outline-danger float-end" on:click=delete_site type="button">
                                         <i class="fa-solid fa-trash-can" />
                                     </button>
                                 }
@@ -185,7 +208,10 @@ fn SitePassword(cx: Scope, site: Option<Site>) -> impl IntoView {
                             <label>"Password Type"</label>
                             <select
                                 class="form-select"
-                                on:change=move |ev| pw_type.set(event_target_value(&ev))
+                                on:change=move |ev| {
+                                    pw_type.set(event_target_value(&ev));
+                                    save_site();
+                                }
                                 prop:value=pw_type
                             >
                                 <option selected=is_selected("Maximum") value="Maximum">"Maximum"</option>
@@ -206,7 +232,10 @@ fn SitePassword(cx: Scope, site: Option<Site>) -> impl IntoView {
                             <input
                                 class="form-control"
                                 type="number" min="1"
-                                on:change=move |ev| counter.set(event_target_value(&ev).parse::<i32>().unwrap_or(1))
+                                on:change=move |ev| {
+                                    counter.set(event_target_value(&ev).parse::<i32>().unwrap_or(1));
+                                    save_site();
+                                }
                                 prop:value=counter
                             />
                         </div>

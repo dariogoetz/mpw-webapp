@@ -15,7 +15,7 @@ fn main() {
 }
 
 #[derive(Copy, Clone)]
-struct RwUserData(RwSignal<EncryptedStorage>);
+struct RwStorage(RwSignal<EncryptedStorage>);
 
 #[derive(Copy, Clone)]
 struct RwLoginData(RwSignal<Option<LoginData>>);
@@ -34,13 +34,12 @@ fn App(cx: Scope) -> impl IntoView {
     provide_context(cx, RwLoginData(login_data));
 
     // prepare global state for browser-local storage
-    let user_data = create_rw_signal(cx, EncryptedStorage::from_local_storage());
-    provide_context(cx, RwUserData(user_data));
-    let existing_name = move || user_data().names().first().map(|name| name.to_string());
+    let store = create_rw_signal(cx, EncryptedStorage::from_local_storage());
+    provide_context(cx, RwStorage(store));
 
     // write database to storage whenever it changes
     create_effect(cx, move |_| {
-        user_data().to_local_storage();
+        store().to_local_storage();
     });
 
     view! { cx,
@@ -48,7 +47,7 @@ fn App(cx: Scope) -> impl IntoView {
             <Show
                 when=move || login_data().is_some()
                 // if no masterpassword is set, yet, show login component
-                fallback=move |cx| view! { cx, <Login existing_name=existing_name/>}
+                fallback=move |cx| view! { cx, <Login />}
             >
                 <Sites />
             </Show>
