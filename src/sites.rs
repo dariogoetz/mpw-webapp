@@ -171,16 +171,16 @@ fn SitePassword(cx: Scope, site: Signal<Option<Site>>) -> impl IntoView {
                     {if site().is_none() {
                         view! { cx,
                             // Name input field
-                            <div class="row mb-3">
-                                <label class="col-2 col-form-label">"Site Name"</label>
-                                <div class="col-10">
-                                    <input type="text" class="form-control"
-                                        on:input=move |ev| {
-                                            site_name.set(event_target_value(&ev));
-                                        }
-                                        prop:value=site_name
-                                    />
-                                </div>
+                            <div class="input-group mb-3">
+                                <span class="input-group-text">
+                                    <i class="fa-solid fa-pen"/>
+                                </span>
+                                <input type="text" class="form-control" placeholder="Site Name"
+                                    on:input=move |ev| {
+                                        site_name.set(event_target_value(&ev));
+                                    }
+                                    prop:value=site_name
+                                />
                             </div>
                         }.into_any()
                     } else {view! { cx, <div />}.into_any()}}
