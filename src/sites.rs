@@ -31,15 +31,19 @@ pub fn Sites(cx: Scope) -> impl IntoView {
 
         <SitePassword site=Signal::derive(cx, move || None)/>
 
-        <For
-            each=sites
-            key=|site| site.site_name.to_string()
-            view=move |cx, site| {
-                    view! {cx,
-                        <SitePassword site=Signal::derive(cx, move || Some(site.clone())) />
+        <hr />
+
+        <div class="row">
+            <For
+                each=sites
+                key=|site| site.site_name.to_string()
+                view=move |cx, site| {
+                        view! {cx,
+                            <div class="col-lg-6"><SitePassword site=Signal::derive(cx, move || Some(site.clone())) /></div>
+                        }
                     }
-                }
-        />
+            />
+        </div>
     }
 }
 
@@ -134,9 +138,9 @@ fn SitePassword(cx: Scope, site: Signal<Option<Site>>) -> impl IntoView {
     view! { cx,
         <form>
             <div class="card mb-3">
-                <div class="card-header text-bg-secondary">
+                <div class=move || if site().is_none() {"card-header text-bg-secondary"} else {"card-header"}>
                     <div class="row">
-                        <h1 class="col-9">{title()}</h1>
+                        <span class="col-9 fs-4">{title()}</span>
                         <div class="col-3">
                             // Collapse edit fields button
                             <button class="btn btn-light btn-outline-secondary float-end" type="button" data-bs-toggle="collapse" data-bs-target=format!("#{}Collapse", site_name())>
@@ -163,41 +167,41 @@ fn SitePassword(cx: Scope, site: Signal<Option<Site>>) -> impl IntoView {
                     </div>
                 </div>
 
-                <div class="card-body">
+                <div class="card-body text-bg-light">
                     {if site().is_none() {
                         view! { cx,
                             // Name input field
-                            <div class="mb-3">
-                                <label class="form-label">"Site Name"</label>
-                                <input type="text" class="form-control"
-                                    on:input=move |ev| {
-                                        site_name.set(event_target_value(&ev));
-                                    }
-                                    prop:value=site_name
-                                />
+                            <div class="row mb-3">
+                                <label class="col-2 col-form-label">"Site Name"</label>
+                                <div class="col-10">
+                                    <input type="text" class="form-control"
+                                        on:input=move |ev| {
+                                            site_name.set(event_target_value(&ev));
+                                        }
+                                        prop:value=site_name
+                                    />
+                                </div>
                             </div>
                         }.into_any()
                     } else {view! { cx, <div />}.into_any()}}
 
                     // Password input field
-                    <div class="mb-3">
-                        <div class="input-group">
-                            <input
-                                class="form-control"
-                                // show password if toggled
-                                type=move || if hide_pw() { "password" } else { "text" }
-                                prop:value=password
-                                readonly
-                            />
-                            <button
-                                // toggle password hiding
-                                class="btn btn-outline-secondary"
-                                type="button"
-                                on:click=move |_| hide_pw.set(!hide_pw())
-                            >
-                                <i class=move || if hide_pw() {"fa-solid fa-eye"} else {"fa-solid fa-eye-slash"} />
-                            </button>
-                        </div>
+                    <div class="input-group mb-3">
+                        <input
+                            class="form-control text-bg-secondary text-center"
+                            // show password if toggled
+                            type=move || if hide_pw() { "password" } else { "text" }
+                            prop:value=password
+                            readonly
+                        />
+                        <button
+                            // toggle password hiding
+                            class="btn btn-light btn-outline-secondary"
+                            type="button"
+                            on:click=move |_| hide_pw.set(!hide_pw())
+                        >
+                            <i class=move || if hide_pw() {"fa-solid fa-eye"} else {"fa-solid fa-eye-slash"} />
+                        </button>
                     </div>
 
                     // Password Settings

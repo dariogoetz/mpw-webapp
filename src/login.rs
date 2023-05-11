@@ -34,6 +34,7 @@ pub fn Login(cx: Scope) -> impl IntoView {
     let name = create_rw_signal(cx, store().last_user);
     let password = create_rw_signal(cx, "".to_string());
     let pw_invalid = create_rw_signal(cx, false);
+    let hide_pw = create_rw_signal(cx, true);
 
     // null password upon login
     create_effect(cx, move |_| {
@@ -45,36 +46,52 @@ pub fn Login(cx: Scope) -> impl IntoView {
 
     view! { cx,
         <div class="card">
-            <div class="card-header text-bg-primary"> <h1>"Login"</h1> </div>
+            <div class="card-header text-bg-primary"> <span class="fs-1">"Login"</span> </div>
 
             <div class="card-body">
                 <form>
                     // Name input field
-                    <div class="mb-3">
-                        <label class="form-label">"Name"</label>
-                        <input type="text" class="form-control"
-                            on:input=move |ev| {
-                                name.set(event_target_value(&ev));
-                            }
-                        prop:value=name
-                        />
+                    <div class="row mb-3">
+                        <label class="col-2 col-form-label">"Name"</label>
+                        <div class="col-10">
+                            <input type="text" class="form-control"
+                                on:input=move |ev| {
+                                    name.set(event_target_value(&ev));
+                                }
+                            prop:value=name
+                            />
+                        </div>
                     </div>
 
                     // Password input field
-                    <div class="mb-3">
-                        <label class="form-label">"Password"</label>
-                        <input
-                            type="password"
-                            class=move || {if pw_invalid() {"form-control is-invalid"} else {"form-control"}}
-                            on:input=move |ev| {
-                                pw_invalid.set(false);
-                                password.set(event_target_value(&ev));
-                            }
-                        prop:value=password
-                        />
+                    <div class="row mb-3">
+                        <label class="col-2 col-form-label">"Password"</label>
+                        <div class="col-10">
+                            <div class="input-group">
+                                <input
+                                    type=move || if hide_pw() { "password" } else { "text" }
+                                    class=move || {if pw_invalid() {"form-control is-invalid"} else {"form-control"}}
+                                    on:input=move |ev| {
+                                        pw_invalid.set(false);
+                                        password.set(event_target_value(&ev));
+                                    }
+                                prop:value=password
+                                />
+                                <button
+                                    // toggle password hiding
+                                    class="btn btn-light btn-outline-secondary"
+                                    type="button"
+                                    on:click=move |_| hide_pw.set(!hide_pw())
+                                >
+                                    <i class=move || if hide_pw() {"fa-solid fa-eye"} else {"fa-solid fa-eye-slash"} />
+                                </button>
+                            </div>
+                        </div>
                     </div>
 
+
                     // Submit button
+                    <div class="row">
                     <button type="submit" class="btn btn-primary"
                         on:click=move |ev| {
                             // stop the page from reloading!
@@ -89,6 +106,7 @@ pub fn Login(cx: Scope) -> impl IntoView {
                             }
                         }
                     >"Submit"</button>
+                    </div>
                 </form>
             </div>
         </div>
