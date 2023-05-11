@@ -51,10 +51,12 @@ pub fn Login(cx: Scope) -> impl IntoView {
             <div class="card-body">
                 <form>
                     // Name input field
-                    <div class="row mb-3">
-                        <label class="col-2 col-form-label">"Name"</label>
-                        <div class="col-10">
-                            <input type="text" class="form-control"
+                    <div class="row">
+                        <div class="input-group mb-3">
+                            <span class="input-group-text">
+                                <i class="fa-solid fa-user"/>
+                            </span>
+                            <input type="text" class="form-control" placeholder="Full Name"
                                 on:input=move |ev| {
                                     name.set(event_target_value(&ev));
                                 }
@@ -64,48 +66,49 @@ pub fn Login(cx: Scope) -> impl IntoView {
                     </div>
 
                     // Password input field
-                    <div class="row mb-3">
-                        <label class="col-2 col-form-label">"Password"</label>
-                        <div class="col-10">
-                            <div class="input-group">
-                                <input
-                                    type=move || if hide_pw() { "password" } else { "text" }
-                                    class=move || {if pw_invalid() {"form-control is-invalid"} else {"form-control"}}
-                                    on:input=move |ev| {
-                                        pw_invalid.set(false);
-                                        password.set(event_target_value(&ev));
-                                    }
-                                prop:value=password
-                                />
-                                <button
-                                    // toggle password hiding
-                                    class="btn btn-light btn-outline-secondary"
-                                    type="button"
-                                    on:click=move |_| hide_pw.set(!hide_pw())
-                                >
-                                    <i class=move || if hide_pw() {"fa-solid fa-eye"} else {"fa-solid fa-eye-slash"} />
-                                </button>
-                            </div>
+                    <div class="row">
+                        <div class="input-group mb-3">
+                            <span class="input-group-text">
+                                <i class="fa-solid fa-key"/>
+                            </span>
+                            <input
+                                type=move || if hide_pw() { "password" } else { "text" }
+                                placeholder="Password"
+                                class=move || {if pw_invalid() {"form-control is-invalid"} else {"form-control"}}
+                                on:input=move |ev| {
+                                    pw_invalid.set(false);
+                                    password.set(event_target_value(&ev));
+                                }
+                            prop:value=password
+                            />
+                            <button
+                                // toggle password hiding
+                                class="btn btn-light btn-outline-secondary"
+                                type="button"
+                                on:click=move |_| hide_pw.set(!hide_pw())
+                            >
+                                <i class=move || if hide_pw() {"fa-solid fa-eye"} else {"fa-solid fa-eye-slash"} />
+                            </button>
                         </div>
                     </div>
 
 
                     // Submit button
                     <div class="row">
-                    <button type="submit" class="btn btn-primary"
-                        on:click=move |ev| {
-                            // stop the page from reloading!
-                            ev.prevent_default();
+                        <button type="submit" class="btn btn-primary"
+                            on:click=move |ev| {
+                                // stop the page from reloading!
+                                ev.prevent_default();
 
-                            if name().len() > 0 {
-                                try_login(&name(), &password(), &store())
-                                    .map(|data| login_data.set(Some(data)))
-                                    .unwrap_or_else(|_| {
-                                        pw_invalid.set(true);
-                                });
+                                if name().len() > 0 {
+                                    try_login(&name(), &password(), &store())
+                                        .map(|data| login_data.set(Some(data)))
+                                        .unwrap_or_else(|_| {
+                                            pw_invalid.set(true);
+                                    });
+                                }
                             }
-                        }
-                    >"Submit"</button>
+                        >"Submit"</button>
                     </div>
                 </form>
             </div>

@@ -43,7 +43,7 @@ fn App(cx: Scope) -> impl IntoView {
     });
 
     view! { cx,
-        <div class="container overflow-hidden">
+        <div class="container overflow-hidden justify-content-center">
             <Show
                 when=move || login_data().is_some()
                 // if no masterpassword is set, yet, show login component
