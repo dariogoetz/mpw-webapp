@@ -536,7 +536,7 @@ function getImports() {
         const ret = makeMutClosure(arg0, arg1, 87, __wbg_adapter_22);
         return addHeapObject(ret);
     };
-    imports.wbg.__wbindgen_closure_wrapper450 = function(arg0, arg1, arg2) {
+    imports.wbg.__wbindgen_closure_wrapper452 = function(arg0, arg1, arg2) {
         const ret = makeMutClosure(arg0, arg1, 140, __wbg_adapter_27);
         return addHeapObject(ret);
     };
@@ -574,7 +574,7 @@ function initSync(module) {
 
 async function init(input) {
     if (typeof input === 'undefined') {
-        input = new URL('mpw-leptos-1d5d6d13d86b7d83_bg.wasm', import.meta.url);
+        input = new URL('mpw-leptos-288934707c2aec8_bg.wasm', import.meta.url);
     }
     const imports = getImports();
 
