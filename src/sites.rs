@@ -24,7 +24,15 @@ pub fn Sites(cx: Scope) -> impl IntoView {
             .decrypt_sites(&login_name(), &storage_password())
             .unwrap_or(Vec::new())
             .into_iter()
-            .filter(|s| s.site_name.contains(&filter()))
+            .filter(|s| {
+                if filter().chars().all(|c| c.is_lowercase()) {
+                    // filter string contains a capital letter => filter case-sensitive
+                    s.site_name.to_lowercase().contains(&filter())
+                } else {
+                    // filter string is all lowercase => filter case-insensitive
+                    s.site_name.contains(&filter())
+                }
+            })
             .collect::<Vec<_>>()
     };
 
