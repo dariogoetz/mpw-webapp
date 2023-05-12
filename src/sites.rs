@@ -37,7 +37,7 @@ pub fn Sites(cx: Scope) -> impl IntoView {
 
         <hr />
         <div class="row justify-content-end mb-1">
-            <div class="col-3">
+            <div class="col-12 col-md-6 col-lg-3">
                 <div class="input-group">
                     <span class="input-group-text">
                         <i class="fa-solid fa-filter"/>
@@ -55,7 +55,9 @@ pub fn Sites(cx: Scope) -> impl IntoView {
         <div class="row">
             {move || sites().into_iter().map(|site| {
                 view! {cx,
-                    <div class="col-lg-6"><SitePassword site=Signal::derive(cx, move || Some(site.clone())) /></div>
+                    <div class="col-lg-6">
+                        <SitePassword site=Signal::derive(cx, move || Some(site.clone())) />
+                    </div>
                 }
             })
             .collect::<Vec<_>>()}
