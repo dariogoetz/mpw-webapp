@@ -18,10 +18,14 @@ pub fn Sites(cx: Scope) -> impl IntoView {
 
     let store = use_context::<RwStorage>(cx).unwrap().0;
 
+    let filter = create_rw_signal(cx, "".to_string());
     let sites = move || {
         store()
             .decrypt_sites(&login_name(), &storage_password())
             .unwrap_or(Vec::new())
+            .into_iter()
+            .filter(|s| s.site_name.contains(&filter()))
+            .collect::<Vec<_>>()
     };
 
     view! { cx,
@@ -32,17 +36,41 @@ pub fn Sites(cx: Scope) -> impl IntoView {
         <SitePassword site=Signal::derive(cx, move || None)/>
 
         <hr />
+        <div class="row justify-content-end mb-1">
+            <div class="col-3">
+                <div class="input-group">
+                    <span class="input-group-text">
+                        <i class="fa-solid fa-filter"/>
+                    </span>
+                    <input type="text" class="form-control" placeholder="Filter..."
+                        on:input=move |ev| {
+                            filter.set(event_target_value(&ev));
+                        }
+                        prop:value=filter
+                    />
+                </div>
+            </div>
+        </div>
 
         <div class="row">
-            <For
-                each=sites
-                key=|site| site.site_name.to_string()
-                view=move |cx, site| {
-                        view! {cx,
-                            <div class="col-lg-6"><SitePassword site=Signal::derive(cx, move || Some(site.clone())) /></div>
-                        }
-                    }
-            />
+            {move || sites().into_iter().map(|site| {
+                view! {cx,
+                    <div class="col-lg-6"><SitePassword site=Signal::derive(cx, move || Some(site.clone())) /></div>
+                }
+            })
+            .collect::<Vec<_>>()}
+            // For some reason, the <For /> construct looses the sorting after filtering
+            // we therefore use the (less efficient) version above
+
+            // <For
+            //     each=sites
+            //     key=|site| site.site_name.to_string()
+            //     view=move |cx, site| {
+            //         view! {cx,
+            //             <div class="col-lg-6"><SitePassword site=Signal::derive(cx, move || Some(site.clone())) /></div>
+            //         }
+            //     }
+            // />
         </div>
     }
 }
