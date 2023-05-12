@@ -574,7 +574,7 @@ function initSync(module) {
 
 async function init(input) {
     if (typeof input === 'undefined') {
-        input = new URL('mpw-leptos-a9d8325f7260170b_bg.wasm', import.meta.url);
+        input = new URL('mpw-leptos-1d5d6d13d86b7d83_bg.wasm', import.meta.url);
     }
     const imports = getImports();
 
