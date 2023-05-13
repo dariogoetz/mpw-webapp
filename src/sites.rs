@@ -125,6 +125,7 @@ fn SitePassword(cx: Scope, site: Signal<Option<Site>>) -> impl IntoView {
                     counter(),
                     &pw_type(),
                 )
+                .unwrap_or_else(|e| log!("Error adding site: {}", e));
             });
         }
     };
@@ -138,11 +139,15 @@ fn SitePassword(cx: Scope, site: Signal<Option<Site>>) -> impl IntoView {
                 counter(),
                 &pw_type(),
             )
+            .unwrap_or_else(|e| log!("Error updating site: {}", e));
         });
     };
 
     let delete_site = move |_ev| {
-        store.update(|data| data.delete_site(&login_name(), &storage_password(), &site_name()));
+        store.update(|data| {
+            data.delete_site(&login_name(), &storage_password(), &site_name())
+                .unwrap_or_else(|e| log!("Error deleting site: {}", e))
+        });
     };
 
     let save_site = move || {

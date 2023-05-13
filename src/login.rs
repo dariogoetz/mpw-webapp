@@ -1,3 +1,5 @@
+use std::error::Error;
+
 use leptos::*;
 use mpw::masterkey::MasterKey;
 
@@ -7,7 +9,11 @@ const STORAGE_PASSWORD_SITE: &str = "__storage__";
 const STORAGE_PASSWORD_TYPE: &str = "Maximum";
 const STORAGE_PASSWORD_COUNTER: i32 = 1;
 
-fn try_login(name: &str, password: &str, storage: &EncryptedStorage) -> Result<LoginData, String> {
+fn try_login(
+    name: &str,
+    password: &str,
+    storage: &EncryptedStorage,
+) -> Result<LoginData, Box<dyn Error>> {
     let masterkey = MasterKey::new_auth(&name, &password);
 
     let storage_password = masterkey.generate_password(
